@@ -34,3 +34,16 @@
 .ptag{
     font-size: 14px;
 }
+
+.image-file{
+    display: flex;
+    /* flex-direction: column; */
+    align-items: center;
+    justify-content: center;
+  
+}
+.img-cls {
+    height: 50px;
+    width: 50px;
+    background-size: cover;
+}

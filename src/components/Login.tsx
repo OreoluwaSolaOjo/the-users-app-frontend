@@ -16,11 +16,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    // const handleLogin = () => {
-    //     if (username && password) {
-    //         onLogin();
-    //     }
-    // };
+  
 
     // const handleLogin = async () => {
     //     setAuthing(true);
@@ -61,18 +57,20 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     const handleLogin = async () => {
         setAuthing(true);
         try {
-            console.log("this is email and pass", email + ' ' + password)
+            // console.log("this is email and pass", email + ' ' + password)
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user: any = userCredential.user;
-            console.log("user herer", user);
+            // console.log("user herer", user);
             const token = await user.getIdToken();
-            console.log("this is token", token)
+            // console.log("this is token", token)
             setToken(token);
             localStorage.setItem("userToken", token);
             localStorage.setItem("email", user.email);
             // Send the token to your backend
-            const response = await fetch(`${API_BASE_URL}/login`, {
+            // const response = await fetch(`${API_BASE_URL}/login`, {
+                const response = await fetch('/api/users/login', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': token
@@ -88,10 +86,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             //     body: JSON.stringify({uid: user.uid})
             // });
             const data = await response.json();
-            console.log("this is response", data)
+            // console.log("this is response", data)
             const idTokenResult = await user.getIdTokenResult();
-            console.log("user", user)
-            console.log("idtoken", idTokenResult)
+            // console.log("user", user)
+            // console.log("idtoken", idTokenResult)
+            localStorage.setItem('uid', idTokenResult.claims.user_id)
             if (idTokenResult.claims.admin) {
                 // The user is an admin.
                 // You can now adapt your frontend UI/UX accordingly.
@@ -101,6 +100,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             }
             setAuthing(false)
         } catch (error: any) {
+            setAuthing(false);
             alert('Error logging in: ' + error.message);
         }
     };

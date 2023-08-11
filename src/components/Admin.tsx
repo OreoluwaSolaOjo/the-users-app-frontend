@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './Admin.css';
 import profile from '../assets/profile.png'
 import { API_BASE_URL } from '../utils/base_url';
+import axios from 'axios';
 interface AdminPageProps {
 
 }
@@ -23,7 +24,7 @@ interface User {
 
 
 const AdminPage: React.FC<AdminPageProps> = () => {
- 
+
 
     const [usersData, setUsersData] = useState<User[]>([]);
     const [userA, setUserA] = useState<User | null>(null);
@@ -43,7 +44,7 @@ const AdminPage: React.FC<AdminPageProps> = () => {
         navigate('/login')
     }
     const handleCompare = () => {
-      
+
         setUserCom(true)
     }
     const handleUserA = () => {
@@ -67,79 +68,119 @@ const AdminPage: React.FC<AdminPageProps> = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, userId: string) => {
         if (e.target.files && e.target.files.length > 0) {
             const selectedFile = e.target.files[0];
-            // console.log('hi', selectedFile)
-      
+
+
             setFiles(prevFiles => ({
                 ...prevFiles,
                 [userId]: selectedFile
             }));
-                // Set the file name
-        setFileNames(prevNames => ({
-            ...prevNames,
-            [userId]: selectedFile.name
-        }));
+            // Set the file name
+            setFileNames(prevNames => ({
+                ...prevNames,
+                [userId]: selectedFile.name
+            }));
         }
     }
-    
-    
-   
-  
-    
-    const handleSubmit = async () => {
-        setAuthing(true)
-        try {
 
+
+
+
+
+
+    const handleSubmit = async () => {
+        setAuthing(true);
+        try {
             for (const user of usersData) {
                 const userFile = files[user.id];
-    
+
                 if (!userFile) {
                     console.error(`No file selected for user ${user.email}.`);
                     continue; // Skip this user and move to the next one
                 }
-    
+
                 const formData = new FormData();
                 formData.append("image", userFile);
-    
-                // Assuming you have an API endpoint for uploading a file for a user.
-                const response = await fetch(`${API_BASE_URL}/edit-user/${user.id}`, {
-                    method: 'POST',
+
+                // const response = await axios.post(`${API_BASE_URL}/edit-user/${user.id}`, formData, {
+                const response = await axios.post(`/api/users/edit-user/${user.id}`, formData, {
+                    withCredentials: true,
                     headers: {
-                        'Authorization': localStorage.getItem("userToken") || '',
-                    },
-                    body: formData
+                        'Authorization': localStorage.getItem("userToken") || ''
+                    }
                 });
-    
-                if (!response.ok) {
-                    throw new Error(`Failed to upload image for user ${user.email}.`);
-                }
-    
-                const data = await response.json();
-                console.log("Data received:", data);
+
+                // console.log("Data received:", response.data);
             }
-    
+            alert("User Profile Picture(s) uploaded successfully");
             // Refresh the page after successful completion
-            setAuthing(false)
+            setAuthing(false);
             window.location.reload();
-    
+
         } catch (error) {
             // console.error("An error occurred:", error.message);
-           
+            setAuthing(false);
             alert("An error occurred. Please try again.");
         }
     }
-    
-    useEffect(() => {
-        console.log("got here 1")
-        const _userToken: any = localStorage.getItem("userToken");
-        console.log("_userToken:", _userToken);
 
-        console.log("got here 2")
+    // const handleSubmit = async () => {
+    //     setAuthing(true)
+    //     try {
+
+    //         for (const user of usersData) {
+    //             const userFile = files[user.id];
+
+    //             if (!userFile) {
+    //                 console.error(`No file selected for user ${user.email}.`);
+    //                 continue; // Skip this user and move to the next one
+    //             }
+
+    //             const formData = new FormData();
+    //             formData.append("image", userFile);
+
+    //             // Assuming you have an API endpoint for uploading a file for a user.
+    //             const response = await fetch(`${API_BASE_URL}/edit-user/${user.id}`, {
+    //                 method: 'POST',
+    //                 credentials: 'include',
+    //                 headers: {
+
+    //                     'Authorization': localStorage.getItem("userToken") || '',
+    //                 },
+    //                 body: formData
+    //             });
+
+    //             if (!response.ok) {
+    //                 throw new Error(`Failed to upload image for user ${user.email}.`);
+    //             }
+
+    //             const data = await response.json();
+    //             console.log("Data received:", data);
+    //         }
+
+    //         // Refresh the page after successful completion
+    //         setAuthing(false)
+    //         window.location.reload();
+
+    //     } catch (error) {
+    //         // console.error("An error occurred:", error.message);
+
+    //         alert("An error occurred. Please try again.");
+    //     }
+    // }
+
+    useEffect(() => {
+        // console.log("got here 1")
+        const _userToken: any = localStorage.getItem("userToken");
+        // console.log("_userToken:", _userToken);
+
+        // console.log("got here 2")
         // const userToken = JSON.parse(_userToken)
-        console.log("userT", _userToken)
+        // console.log("userT", _userToken)
 
         const getUsers = async () => {
 
-            const response = await fetch(`${API_BASE_URL}/retrieve-non-admin-users`, {
+            // const response = await fetch(`${API_BASE_URL}/retrieve-non-admin-users`, {
+                const response = await fetch('/api/users/retrieve-non-admin-users', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -148,7 +189,7 @@ const AdminPage: React.FC<AdminPageProps> = () => {
 
             });
             const data = await response.json();
-            console.log("newdata", data)
+            // console.log("newdata", data)
             setUsersData(data.data)
         }
         getUsers();
@@ -199,15 +240,15 @@ const AdminPage: React.FC<AdminPageProps> = () => {
                     </div>
 
                 </div>}
-                {userB && <div className='user-div'> 
-                <div><h4>USER B:</h4></div>
-                 <div>
-                    <p className='heading'>Email</p>
-                    <p>
-                        {userB.email}
-                    </p>
+                {userB && <div className='user-div'>
+                    <div><h4>USER B:</h4></div>
+                    <div>
+                        <p className='heading'>Email</p>
+                        <p>
+                            {userB.email}
+                        </p>
 
-                </div>
+                    </div>
                     <div>
                         <p className='heading'> Company Name</p>
                         <p>
@@ -235,13 +276,13 @@ const AdminPage: React.FC<AdminPageProps> = () => {
                         </p>
 
                     </div></div>}
-                <div>
+                <div className='container-div-parent'>
                     {(userCom && usersData) && usersData.map((users) => {
                         return (
                             <div className='container-div' key={users.id}>
-                                <div className='image-file'>
+                                <div  className='image-div-upload-view'>
                                     <div>
-                                        <img className='img-cls' src={`http://localhost:3002/${users.image}`} alt="" />
+                                        <img className='img-cls' src={users.image} alt={users.companyName} />
                                     </div>
                                     <div>
                                         <label className='labelimage' htmlFor={`file-upload-${users.id}`}>Upload Image</label>
@@ -257,41 +298,41 @@ const AdminPage: React.FC<AdminPageProps> = () => {
                                             onChange={(e) => handleFileChange(e, users.id)}
                                         />
                                         {fileNames[users.id] && <span className='span-file-name'>{fileNames[users.id]}</span>}
-                                        
+
 
                                     </div>
                                 </div>
 
-                                <div>
-                                    <p className='heading'>Email</p>
-                                    <p>
+                                <div className='container-content'>
+                                    <p >Email</p>
+                                    <p className='heading'>
                                         {users.email}
                                     </p>
 
                                 </div>
-                                <div>
-                                    <p className='heading'>Company Name</p>
-                                    <p>
+                                <div className='container-content'>
+                                    <p >Company Name</p>
+                                    <p className='heading'>
                                         {users.companyName}
                                     </p>
 
                                 </div>
-                                <div>
-                                    <p className='heading'>Number of Products</p>
-                                    <p>
+                                <div className='container-content'>
+                                    <p>Number of Products</p>
+                                    <p className='heading'>
                                         {users.numOfProducts}
                                     </p>
 
                                 </div>
-                                <div>
-                                    <p className='heading'>Number Of Users</p>
-                                    <p>
+                                <div className='container-content'>
+                                    <p >Number Of Users</p>
+                                    <p className='heading'>
                                         {users.numOfUsers}
                                     </p>
                                 </div>
-                                <div>
-                                    <p className='heading'>Percentage</p>
-                                    <p>
+                                <div className='container-content'>
+                                    <p>Percentage</p>
+                                    <p className='heading'>
                                         {users.percentage}
                                     </p>
 
@@ -306,10 +347,10 @@ const AdminPage: React.FC<AdminPageProps> = () => {
                     })}
                 </div>
                 <div className='button-div'>
-                    <button onClick={handleUserA}>Retieve A</button>
-                    <button onClick={handleUserB}>Retrieve B</button>
-                    <button onClick={handleCompare}>Compare Fields</button>
-                    <button onClick={handleSubmit}>{authing ? 'Uploading Image(s)' : 'Upload for Users'}</button>
+                    <button onClick={handleUserA}>Retieve User A</button>
+                    <button onClick={handleUserB}>Retrieve User B</button>
+                    <button onClick={handleCompare}>Compare User A & B</button>
+                    <button onClick={handleSubmit}>{authing ? 'Uploading Image(s)' : 'Upload Images for Users'}</button>
 
                     <button onClick={handleLogout}>Logout</button>
                 </div>
